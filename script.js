@@ -138,32 +138,148 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// Team Auto-Drift & Manual Drag Scroll
-const teamScroll = document.querySelector('.team-scroll-container');
-const teamTrack = document.querySelector('.team-scroll-track');
+// --- CMS Data Loading ---
+async function initCMS() {
+    try {
+        // Load Portfolio
+        const portfolioRes = await fetch('content/portfolio.json');
+        const portfolioData = await portfolioRes.json();
+        renderPortfolio(portfolioData.items);
 
-if (teamScroll && teamTrack) {
-    // Clone items once for seamless looping
-    const items = [...teamTrack.children];
-    items.forEach(item => {
+        // Load Testimonials
+        const testimonialsRes = await fetch('content/testimonials.json');
+        const testimonialsData = await testimonialsRes.json();
+        renderTestimonials(testimonialsData.items);
+
+        // Load Team
+        const teamRes = await fetch('content/team.json');
+        const teamData = await teamRes.json();
+        renderTeam(teamData.items);
+
+        // Re-initialize animations and logic that depend on dynamic content
+        initReappliedLogic();
+    } catch (error) {
+        console.error('Error loading CMS data:', error);
+    }
+}
+
+function renderPortfolio(items) {
+    const container = document.querySelector('.portfolio-grid');
+    if (!container) return;
+    container.innerHTML = items.map(item => `
+        <div class="port-item has-video" 
+             data-video="${item.video}"
+             style="background-image: url('${item.image}');">
+             <div class="port-overlay">
+                <span>${item.title}</span>
+             </div>
+        </div>
+    `).join('');
+}
+
+function renderTestimonials(items) {
+    const container = document.querySelector('.video-testi-grid');
+    if (!container) return;
+    container.innerHTML = items.map(item => `
+        <div class="testimonial-card">
+            <div class="testi-user-info">
+                <div class="testi-user-img">
+                    <img src="${item.userImage || 'assets/icon-gold.png'}" alt="${item.name}">
+                </div>
+                <div class="testi-user-details">
+                    <h4>${item.name}</h4>
+                    <p>${item.title}</p>
+                </div>
+            </div>
+            <div class="testi-video has-video" 
+                 data-video="${item.video}"
+                 style="background-image: url('${item.image}'); background-size: cover; background-position: center;">
+                 <div class="play-btn-overlay"><i class="fas fa-play"></i></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderTeam(items) {
+    const track = document.querySelector('.team-scroll-track');
+    if (!track) return;
+    track.innerHTML = items.map(item => `
+        <div class="pro-team-card">
+            <div class="pro-team-img">
+                <img src="${item.image}" alt="${item.name}">
+            </div>
+            <div class="pro-team-info">
+                <h3>${item.name}</h3>
+                <p>${item.position}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function initReappliedLogic() {
+    // Re-initialize Team Scroll
+    initTeamScroll();
+    
+    // Re-initialize Video Modal (using event delegation on document)
+    // No need to re-init if we use delegation, but let's ensure it's ready
+}
+
+// Global Video Modal Logic (using Delegation)
+const modal = document.getElementById("videoModal");
+const iframe = document.getElementById("videoIframe");
+const closeBtn = document.querySelector(".close-modal");
+
+document.addEventListener('click', (e) => {
+    const videoItem = e.target.closest('.has-video');
+    if (videoItem && modal && iframe) {
+        const videoSrc = videoItem.getAttribute('data-video');
+        if (videoSrc) {
+            iframe.src = videoSrc;
+            modal.style.display = "flex";
+            gsap.fromTo(".modal-content", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" });
+        }
+    }
+});
+
+if (modal && closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = "none";
+        iframe.src = "";
+    });
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+            iframe.src = "";
+        }
+    });
+}
+
+// Updated Team Scroll Logic
+function initTeamScroll() {
+    const teamScroll = document.querySelector('.team-scroll-container');
+    const teamTrack = document.querySelector('.team-scroll-track');
+    if (!teamScroll || !teamTrack || teamTrack.children.length === 0) return;
+
+    // Remove old clones if any
+    const originalItems = [...teamTrack.querySelectorAll('.pro-team-card:not(.clone)')];
+    teamTrack.innerHTML = '';
+    originalItems.forEach(item => teamTrack.appendChild(item));
+
+    // Clone items
+    originalItems.forEach(item => {
         const clone = item.cloneNode(true);
+        clone.classList.add('clone');
         teamTrack.appendChild(clone);
     });
 
     let isDown = false;
-    let startX;
-    let scrollLeft;
-    let scrollSpeed = 1.5; // Smooth drift speed
-    let isHovering = false;
-    let currentScroll = 0;
+    let startX, scrollLeft, isHovering = false, currentScroll = 0;
+    const scrollSpeed = 1.2;
 
-    // Auto-drift function
     function autoScroll() {
         if (!isDown && !isHovering) {
             currentScroll += scrollSpeed;
-            if (currentScroll >= teamTrack.scrollWidth / 2) {
-                currentScroll = 0;
-            }
+            if (currentScroll >= teamTrack.scrollWidth / 2) currentScroll = 0;
             teamScroll.scrollLeft = currentScroll;
         } else {
             currentScroll = teamScroll.scrollLeft;
@@ -177,48 +293,18 @@ if (teamScroll && teamTrack) {
         teamScroll.style.cursor = 'grabbing';
         startX = e.pageX - teamScroll.offsetLeft;
         scrollLeft = teamScroll.scrollLeft;
-        currentScroll = scrollLeft;
     });
 
-    teamScroll.addEventListener('mouseleave', () => {
-        isDown = false;
-        isHovering = false;
-        teamScroll.style.cursor = 'grab';
-    });
-
-    teamScroll.addEventListener('mouseenter', () => {
-        isHovering = true;
-    });
-
-    teamScroll.addEventListener('mouseup', () => {
-        isDown = false;
-        teamScroll.style.cursor = 'grab';
-    });
-
-    // Handle mobile touch effectively to fix jitter and lag
-    teamScroll.addEventListener('touchstart', () => {
-        isHovering = true; // Act as hover to pause auto-scroll
-    }, {passive: true});
-
-    let touchTimeout;
-    teamScroll.addEventListener('touchend', () => {
-        // Wait for native momentum scroll to finish before resuming auto scroll
-        clearTimeout(touchTimeout);
-        touchTimeout = setTimeout(() => {
-            isHovering = false;
-            currentScroll = teamScroll.scrollLeft;
-        }, 1500);
-    });
-
+    teamScroll.addEventListener('mouseleave', () => { isDown = false; isHovering = false; });
+    teamScroll.addEventListener('mouseenter', () => { isHovering = true; });
+    teamScroll.addEventListener('mouseup', () => { isDown = false; });
+    
     teamScroll.addEventListener('mousemove', (e) => {
         if (!isDown) return;
-        e.preventDefault();
         const x = e.pageX - teamScroll.offsetLeft;
-        const walk = (x - startX) * 2; 
-
+        const walk = (x - startX) * 2;
         teamScroll.scrollLeft = scrollLeft - walk;
         
-        // Loop boundary checks
         if (teamScroll.scrollLeft <= 0) {
             teamScroll.scrollLeft = teamTrack.scrollWidth / 2;
             startX = e.pageX - teamScroll.offsetLeft;
@@ -231,33 +317,6 @@ if (teamScroll && teamTrack) {
     });
 }
 
-// Video Modal Logic for Portfolio
-const modal = document.getElementById("videoModal");
-const iframe = document.getElementById("videoIframe");
-const closeBtn = document.querySelector(".close-modal");
+// Initialize on Load
+window.addEventListener('DOMContentLoaded', initCMS);
 
-if (modal && iframe && closeBtn) {
-    document.querySelectorAll('.has-video').forEach(item => {
-        item.addEventListener('click', () => {
-            const videoSrc = item.getAttribute('data-video');
-            if (videoSrc) {
-                iframe.src = videoSrc;
-                modal.style.display = "flex";
-                // Add a small animation effect
-                gsap.fromTo(".modal-content", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" });
-            }
-        });
-    });
-
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = "none";
-        iframe.src = ""; // Stop the video
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-            iframe.src = ""; // Stop the video
-        }
-    });
-}

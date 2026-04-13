@@ -1072,3 +1072,36 @@ footer {
     color: var(--gold-color);
     transform: scale(1.1);
 }
+/* --- Dynamic CMS Content Styles --- */
+.port-overlay {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    padding: 30px 20px 20px;
+    background: linear-gradient(to top, rgba(8, 32, 61, 0.9), transparent);
+    color: var(--gold-light);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    transform: translateY(100%);
+    transition: var(--transition);
+}
+.port-item:hover .port-overlay {
+    transform: translateY(0);
+}
+
+.play-btn-overlay {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(8, 32, 61, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--gold-color);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-color); font-size: 1.2rem;
+    transition: var(--transition);
+    pointer-events: none;
+}
+.testi-video:hover .play-btn-overlay {
+    background: var(--gold-color);
+    color: #000;
+    transform: translate(-50%, -50%) scale(1.1);
+}
