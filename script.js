@@ -217,11 +217,11 @@ function renderTeam(items) {
 }
 
 function initReappliedLogic() {
-    // Re-initialize Team Scroll
-    initTeamScroll();
+    // Optimized Scroll for Team
+    createAutoScroll('.team-scroll-container', '.team-scroll-track', 1.0);
     
-    // Re-initialize Video Modal (using event delegation on document)
-    // No need to re-init if we use delegation, but let's ensure it's ready
+    // Optimized Scroll for Testimonials
+    createAutoScroll('.testi-scroll-container', '.testi-scroll-track', 0.8);
 }
 
 // Global Video Modal Logic (using Delegation)
@@ -254,68 +254,92 @@ if (modal && closeBtn) {
     });
 }
 
-// Updated Team Scroll Logic
-function initTeamScroll() {
-    const teamScroll = document.querySelector('.team-scroll-container');
-    const teamTrack = document.querySelector('.team-scroll-track');
-    if (!teamScroll || !teamTrack || teamTrack.children.length === 0) return;
+// --- Reusable & Optimized Scroll Logic ---
+function createAutoScroll(containerSelector, trackSelector, baseSpeed = 1.0) {
+    const container = document.querySelector(containerSelector);
+    const track = document.querySelector(trackSelector);
+    if (!container || !track || track.children.length === 0) return;
 
-    // Remove old clones if any
-    const originalItems = [...teamTrack.querySelectorAll('.pro-team-card:not(.clone)')];
-    teamTrack.innerHTML = '';
-    originalItems.forEach(item => teamTrack.appendChild(item));
+    // Clean up existing clones first
+    [...track.querySelectorAll('.clone')].forEach(el => el.remove());
 
-    // Clone items
+    // Only clone if there are enough items to actually scroll
+    const originalItems = [...track.children];
     originalItems.forEach(item => {
         const clone = item.cloneNode(true);
         clone.classList.add('clone');
-        teamTrack.appendChild(clone);
+        track.appendChild(clone);
     });
 
     let isDown = false;
     let startX, scrollLeft, isHovering = false, currentScroll = 0;
-    const scrollSpeed = 1.2;
+    let requestId;
 
-    function autoScroll() {
+    function step() {
         if (!isDown && !isHovering) {
-            currentScroll += scrollSpeed;
-            if (currentScroll >= teamTrack.scrollWidth / 2) currentScroll = 0;
-            teamScroll.scrollLeft = currentScroll;
+            currentScroll += baseSpeed;
+            // Seamless loop point
+            if (currentScroll >= track.scrollWidth / 2) {
+                currentScroll = 0;
+            }
+            container.scrollLeft = currentScroll;
         } else {
-            currentScroll = teamScroll.scrollLeft;
+            currentScroll = container.scrollLeft;
         }
-        requestAnimationFrame(autoScroll);
+        requestId = requestAnimationFrame(step);
     }
-    autoScroll();
+    
+    // Start loop
+    step();
 
-    teamScroll.addEventListener('mousedown', (e) => {
+    // Event Listeners for Interaction
+    container.addEventListener('mousedown', (e) => {
         isDown = true;
-        teamScroll.style.cursor = 'grabbing';
-        startX = e.pageX - teamScroll.offsetLeft;
-        scrollLeft = teamScroll.scrollLeft;
+        container.style.cursor = 'grabbing';
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
     });
 
-    teamScroll.addEventListener('mouseleave', () => { isDown = false; isHovering = false; });
-    teamScroll.addEventListener('mouseenter', () => { isHovering = true; });
-    teamScroll.addEventListener('mouseup', () => { isDown = false; });
+    container.addEventListener('mouseleave', () => { 
+        isDown = false; 
+        isHovering = false; 
+        container.style.cursor = 'grab';
+    });
     
-    teamScroll.addEventListener('mousemove', (e) => {
+    container.addEventListener('mouseenter', () => { isHovering = true; });
+    container.addEventListener('mouseup', () => { 
+        isDown = false; 
+        container.style.cursor = 'grab';
+    });
+
+    container.addEventListener('mousemove', (e) => {
         if (!isDown) return;
-        const x = e.pageX - teamScroll.offsetLeft;
+        const x = e.pageX - container.offsetLeft;
         const walk = (x - startX) * 2;
-        teamScroll.scrollLeft = scrollLeft - walk;
+        container.scrollLeft = scrollLeft - walk;
         
-        if (teamScroll.scrollLeft <= 0) {
-            teamScroll.scrollLeft = teamTrack.scrollWidth / 2;
-            startX = e.pageX - teamScroll.offsetLeft;
-            scrollLeft = teamScroll.scrollLeft;
-        } else if (teamScroll.scrollLeft >= teamTrack.scrollWidth / 2) {
-            teamScroll.scrollLeft = 0;
-            startX = e.pageX - teamScroll.offsetLeft;
-            scrollLeft = teamScroll.scrollLeft;
+        // Boundaries for manual drag loop
+        if (container.scrollLeft <= 0) {
+            container.scrollLeft = track.scrollWidth / 2;
+            startX = e.pageX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
+        } else if (container.scrollLeft >= track.scrollWidth / 2) {
+            container.scrollLeft = 0;
+            startX = e.pageX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
         }
     });
+
+    // Mobile optimization
+    container.addEventListener('touchstart', () => { isHovering = true; }, {passive: true});
+    container.addEventListener('touchend', () => {
+        setTimeout(() => { 
+            isHovering = false; 
+            currentScroll = container.scrollLeft;
+        }, 1500);
+    }, {passive: true});
 }
+
 
 // Initialize on Load
 window.addEventListener('DOMContentLoaded', initCMS);

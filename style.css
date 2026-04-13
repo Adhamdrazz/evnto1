@@ -451,8 +451,25 @@ section { padding: 80px 0; }
     box-shadow: 0 10px 20px rgba(0,0,0,0.3);
 }
 
-/* Video Testimonials */
-.video-testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; margin-top: 60px; }
+/* Video Testimonials Scroll */
+.testi-scroll-container {
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+    padding: 20px 0;
+}
+.testi-scroll-container::-webkit-scrollbar { display: none; }
+
+.video-testi-grid { 
+    display: flex; 
+    gap: 40px; 
+    padding: 0 40px;
+    width: max-content;
+    will-change: transform;
+}
 .testi-video {
     background: rgba(8, 32, 61, 0.4);
     border: 1px solid rgba(255,255,255,0.05);
@@ -729,7 +746,7 @@ footer { padding: 80px 0 30px; background: rgba(5, 18, 35, 0.98); border-top: 1p
     gap: 30px;
     padding: 0 40px;
     width: max-content;
-    will-change: transform, scroll-position;
+    will-change: transform;
 }
 .pro-team-card {
     min-width: 250px;
