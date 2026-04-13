@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "name": "أحمد فتحي",
+      "position": "Videographer",
+      "image": "assets/فريق العمل/احمد فتحي.jpg"
+    },
+    {
+      "name": "إسلام محمد",
+      "position": "Coordinator",
+      "image": "assets/فريق العمل/اسلام محمد.jpg"
+    },
+    {
+      "name": "محمود النجار",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/محمود النجار.png"
+    }
+  ]
+}

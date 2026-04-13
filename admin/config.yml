@@ -1,0 +1,48 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "assets/uploads"
+
+collections:
+  - name: "data"
+    label: "قائمة البيانات"
+    files:
+      - name: "portfolio"
+        label: "أبرز أعمالنا"
+        file: "content/portfolio.json"
+        fields:
+          - name: "items"
+            label: "الأعمال"
+            widget: "list"
+            fields:
+              - {label: "عنوان العمل", name: "title", widget: "string"}
+              - {label: "رابط فيديو (Google Drive Preview)", name: "video", widget: "string"}
+              - {label: "صورة الغلاف", name: "image", widget: "image"}
+
+      - name: "testimonials"
+        label: "آراء العملاء"
+        file: "content/testimonials.json"
+        fields:
+          - name: "items"
+            label: "الآراء"
+            widget: "list"
+            fields:
+              - {label: "اسم العميل", name: "name", widget: "string"}
+              - {label: "الوظيفة/التعريف", name: "title", widget: "string"}
+              - {label: "صورة العميل (اختياري)", name: "userImage", widget: "image", required: false}
+              - {label: "رابط الفيديو", name: "video", widget: "string"}
+              - {label: "صورة مصغرة للفيديو", name: "image", widget: "image"}
+
+      - name: "team"
+        label: "فريق العمل"
+        file: "content/team.json"
+        fields:
+          - name: "items"
+            label: "أعضاء الفريق"
+            widget: "list"
+            fields:
+              - {label: "الاسم", name: "name", widget: "string"}
+              - {label: "الوظيفة", name: "position", widget: "string"}
+              - {label: "الصورة السخصية", name: "image", widget: "image"}
