@@ -263,6 +263,18 @@ function createAutoScroll(containerSelector, trackSelector, baseSpeed = 1.0) {
     // Clean up existing clones first
     [...track.querySelectorAll('.clone')].forEach(el => el.remove());
 
+    // Reset any static styles just in case
+    track.style.justifyContent = '';
+    track.style.margin = '';
+
+    // Check if scrolling is actually needed based on content width
+    if (track.scrollWidth <= container.clientWidth + 10) {
+        // If content fits within the container, center it and keep it static
+        track.style.justifyContent = 'center';
+        track.style.margin = '0 auto';
+        return;
+    }
+
     // Only clone if there are enough items to actually scroll
     const originalItems = [...track.children];
     originalItems.forEach(item => {
