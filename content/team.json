@@ -14,6 +14,76 @@
       "name": "محمود النجار",
       "position": "Video Editor",
       "image": "assets/فريق العمل/محمود النجار.png"
+    },
+    {
+      "name": "هادي علي",
+      "position": "Manager",
+      "image": "assets/فريق العمل/هادي علي.jpg"
+    },
+    {
+      "name": "محمود مغني",
+      "position": "Scriptwriter",
+      "image": "assets/فريق العمل/محمود مغنى.jpg"
+    },
+    {
+      "name": "منار محمود",
+      "position": "Videographer",
+      "image": "assets/فريق العمل/منار محمود.jpg"
+    },
+    {
+      "name": "محمد علي",
+      "position": "Videographer",
+      "image": "assets/فريق العمل/محمد علي.jpg"
+    },
+    {
+      "name": "نور مدحت",
+      "position": "Graphic Designer",
+      "image": "assets/فريق العمل/نور مدحت.jpg"
+    },
+    {
+      "name": "أدهم دراز",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/ادهم دراز.jpg"
+    },
+    {
+      "name": "تسنيم أيمن",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/تسنيم ايمن.jpg"
+    },
+    {
+      "name": "حبيبة أيمن",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/حبيبه ايمن.jpg"
+    },
+    {
+      "name": "ندى عماد",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/ندى عماد.jpg"
+    },
+    {
+      "name": "سيف وائل",
+      "position": "Assistant Photographer",
+      "image": "assets/فريق العمل/سيف وائل.jpg"
+    },
+    {
+      "name": "شهاب الدين",
+      "position": "Videographer",
+      "image": "assets/فريق العمل/شهاب الدين.png"
+    },
+    {
+      "name": "عبدالله علي",
+      "position": "Video Editor",
+      "image": "assets/فريق العمل/عبدالله علي.jpg"
+    },
+    {
+      "name": "مريم عبدالجواد",
+      "position": "Assistant Photographer",
+      "image": "assets/فريق العمل/مريم عبدالجواد.jpg"
+    },
+    {
+      "name": "أحمد العطيفي",
+      "position": "Videographer",
+      "image": "assets/فريق العمل/احمد العطيفي.jpg"
     }
   ]
 }
