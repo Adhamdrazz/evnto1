@@ -1065,10 +1065,9 @@ footer {
 }
 @media (max-width: 768px) {
     .modal-content {
-        height: auto;
-        aspect-ratio: 16/9;
+        width: 95vw;
+        height: 53.43vw; /* Perfect 16:9 aspect ratio based on 95vw width */
         max-height: none;
-        width: 95%;
     }
 }
 .modal-content iframe {
