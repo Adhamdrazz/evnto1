@@ -138,204 +138,126 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// --- Dynamic Content Loader ---
-async function loadDynamicContent() {
-    try {
-        const [portfolioRes, testimonialsRes, teamRes] = await Promise.all([
-            fetch('content/portfolio.json').then(r => r.json()),
-            fetch('content/testimonials.json').then(r => r.json()),
-            fetch('content/team.json').then(r => r.json())
-        ]);
+// Team Auto-Drift & Manual Drag Scroll
+const teamScroll = document.querySelector('.team-scroll-container');
+const teamTrack = document.querySelector('.team-scroll-track');
 
-        renderPortfolio(portfolioRes.items);
-        renderTestimonials(testimonialsRes.items);
-        renderTeam(teamRes.items);
-
-        // Re-initialize logic that depends on dynamic elements
-        initVideoModalListeners();
-        initTeamScroll();
-        
-    } catch (err) {
-        console.error('Error loading dynamic content:', err);
-    }
-}
-
-function renderPortfolio(items) {
-    const container = document.getElementById('portfolio-list');
-    if (!container) return;
-    container.innerHTML = items.map(item => `
-        <div class="port-item has-video" 
-             data-video="${item.video}"
-             style="background-image: url('${item.image}');"></div>
-    `).join('');
-}
-
-function renderTestimonials(items) {
-    const container = document.getElementById('testimonials-list');
-    if (!container) return;
-    container.innerHTML = items.map(item => `
-        <div class="testimonial-card glass-card">
-            <div class="testi-user-info">
-                <div class="testi-user-img">
-                    <img src="${item.userImage || 'assets/icon-gold.png'}" alt="${item.name}">
-                </div>
-                <div class="testi-user-details">
-                    <h4>${item.name}</h4>
-                    <p>${item.title}</p>
-                </div>
-            </div>
-            <div class="testi-video has-video" 
-                 data-video="${item.video}"
-                 style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('${item.image}'); background-size: cover; background-position: center;"></div>
-        </div>
-    `).join('');
-}
-
-function renderTeam(items) {
-    const container = document.getElementById('team-list');
-    if (!container) return;
-    container.innerHTML = items.map(member => `
-        <div class="pro-team-card">
-            <div class="pro-team-img">
-                <img src="${member.image}" alt="${member.name}">
-            </div>
-            <div class="pro-team-info">
-                <h3>${member.name}</h3>
-                <p>${member.position}</p>
-            </div>
-        </div>
-    `).join('');
-}
-
-function initVideoModalListeners() {
-    const modal = document.getElementById("videoModal");
-    const iframe = document.getElementById("videoIframe");
-    
-    document.querySelectorAll('.has-video').forEach(item => {
-        // Remove existing listener to avoid clones
-        item.removeEventListener('click', openVideoModal);
-        item.addEventListener('click', openVideoModal);
+if (teamScroll && teamTrack) {
+    // Clone items once for seamless looping
+    const items = [...teamTrack.children];
+    items.forEach(item => {
+        const clone = item.cloneNode(true);
+        teamTrack.appendChild(clone);
     });
-}
 
-function openVideoModal() {
-    const modal = document.getElementById("videoModal");
-    const iframe = document.getElementById("videoIframe");
-    const videoSrc = this.getAttribute('data-video');
-    if (videoSrc) {
-        iframe.src = videoSrc;
-        modal.style.display = "flex";
-        gsap.fromTo(".modal-content", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" });
-    }
-}
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    let scrollSpeed = 1.5; // Smooth drift speed
+    let isHovering = false;
+    let currentScroll = 0;
 
-// --- Original Logic Wrappers ---
-
-function initTeamScroll() {
-    const teamScroll = document.querySelector('.team-scroll-container');
-    const teamTrack = document.querySelector('.team-scroll-track');
-
-    if (teamScroll && teamTrack) {
-        // Clear previous clones if any
-        const originalItems = Array.from(teamTrack.querySelectorAll('.pro-team-card:not(.clone)'));
-        teamTrack.innerHTML = '';
-        originalItems.forEach(item => teamTrack.appendChild(item));
-
-        // Clone items for seamless looping
-        originalItems.forEach(item => {
-            const clone = item.cloneNode(true);
-            clone.classList.add('clone');
-            teamTrack.appendChild(clone);
-        });
-
-        // --- Re-attach scroll logic ---
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-        let scrollSpeed = 1.2; // Adjusted for smoothness
-        let isHovering = false;
-        let currentScroll = 0;
-
-        function autoScroll() {
-            if (!isDown && !isHovering) {
-                currentScroll += scrollSpeed;
-                if (currentScroll >= teamTrack.scrollWidth / 2) {
-                    currentScroll = 0;
-                }
-                teamScroll.scrollLeft = currentScroll;
-            } else {
-                currentScroll = teamScroll.scrollLeft;
+    // Auto-drift function
+    function autoScroll() {
+        if (!isDown && !isHovering) {
+            currentScroll += scrollSpeed;
+            if (currentScroll >= teamTrack.scrollWidth / 2) {
+                currentScroll = 0;
             }
-            requestAnimationFrame(autoScroll);
+            teamScroll.scrollLeft = currentScroll;
+        } else {
+            currentScroll = teamScroll.scrollLeft;
         }
-        
-        // Start auto scroll only once
-        if (!window.autoScrollInitialized) {
-            autoScroll();
-            window.autoScrollInitialized = true;
-        }
+        requestAnimationFrame(autoScroll);
+    }
+    autoScroll();
 
-        teamScroll.addEventListener('mousedown', (e) => {
-            isDown = true;
-            teamScroll.style.cursor = 'grabbing';
+    teamScroll.addEventListener('mousedown', (e) => {
+        isDown = true;
+        teamScroll.style.cursor = 'grabbing';
+        startX = e.pageX - teamScroll.offsetLeft;
+        scrollLeft = teamScroll.scrollLeft;
+        currentScroll = scrollLeft;
+    });
+
+    teamScroll.addEventListener('mouseleave', () => {
+        isDown = false;
+        isHovering = false;
+        teamScroll.style.cursor = 'grab';
+    });
+
+    teamScroll.addEventListener('mouseenter', () => {
+        isHovering = true;
+    });
+
+    teamScroll.addEventListener('mouseup', () => {
+        isDown = false;
+        teamScroll.style.cursor = 'grab';
+    });
+
+    // Handle mobile touch effectively to fix jitter and lag
+    teamScroll.addEventListener('touchstart', () => {
+        isHovering = true; // Act as hover to pause auto-scroll
+    }, {passive: true});
+
+    let touchTimeout;
+    teamScroll.addEventListener('touchend', () => {
+        // Wait for native momentum scroll to finish before resuming auto scroll
+        clearTimeout(touchTimeout);
+        touchTimeout = setTimeout(() => {
+            isHovering = false;
+            currentScroll = teamScroll.scrollLeft;
+        }, 1500);
+    });
+
+    teamScroll.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - teamScroll.offsetLeft;
+        const walk = (x - startX) * 2; 
+
+        teamScroll.scrollLeft = scrollLeft - walk;
+        
+        // Loop boundary checks
+        if (teamScroll.scrollLeft <= 0) {
+            teamScroll.scrollLeft = teamTrack.scrollWidth / 2;
             startX = e.pageX - teamScroll.offsetLeft;
             scrollLeft = teamScroll.scrollLeft;
-        });
-
-        teamScroll.addEventListener('mouseleave', () => {
-            isDown = false;
-            isHovering = false;
-            teamScroll.style.cursor = 'grab';
-        });
-
-        teamScroll.addEventListener('mouseenter', () => {
-            isHovering = true;
-        });
-
-        teamScroll.addEventListener('mouseup', () => {
-            isDown = false;
-            teamScroll.style.cursor = 'grab';
-        });
-
-        teamScroll.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - teamScroll.offsetLeft;
-            const walk = (x - startX) * 2; 
-            teamScroll.scrollLeft = scrollLeft - walk;
-        });
-
-        teamScroll.addEventListener('touchstart', () => {
-            isHovering = true;
-        }, {passive: true});
-
-        let touchTimeout;
-        teamScroll.addEventListener('touchend', () => {
-            clearTimeout(touchTimeout);
-            touchTimeout = setTimeout(() => {
-                isHovering = false;
-                currentScroll = teamScroll.scrollLeft;
-            }, 1500);
-        });
-    }
-}
-
-// Start everything
-loadDynamicContent();
-
-// Modal close logic (Static elements)
-const closeModalBtn = document.querySelector(".close-modal");
-if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-        document.getElementById("videoModal").style.display = "none";
-        document.getElementById("videoIframe").src = "";
+        } else if (teamScroll.scrollLeft >= teamTrack.scrollWidth / 2) {
+            teamScroll.scrollLeft = 0;
+            startX = e.pageX - teamScroll.offsetLeft;
+            scrollLeft = teamScroll.scrollLeft;
+        }
     });
 }
 
-window.addEventListener('click', (e) => {
-    const modal = document.getElementById("videoModal");
-    if (e.target === modal) {
+// Video Modal Logic for Portfolio
+const modal = document.getElementById("videoModal");
+const iframe = document.getElementById("videoIframe");
+const closeBtn = document.querySelector(".close-modal");
+
+if (modal && iframe && closeBtn) {
+    document.querySelectorAll('.has-video').forEach(item => {
+        item.addEventListener('click', () => {
+            const videoSrc = item.getAttribute('data-video');
+            if (videoSrc) {
+                iframe.src = videoSrc;
+                modal.style.display = "flex";
+                // Add a small animation effect
+                gsap.fromTo(".modal-content", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" });
+            }
+        });
+    });
+
+    closeBtn.addEventListener('click', () => {
         modal.style.display = "none";
-        document.getElementById("videoIframe").src = "";
-    }
-});
+        iframe.src = ""; // Stop the video
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+            iframe.src = ""; // Stop the video
+        }
+    });
+}
